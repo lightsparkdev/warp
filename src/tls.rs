@@ -287,7 +287,7 @@ impl Transport for TlsStream {
     }
 
     fn peer_certificates(&self) -> PeerCertificates {
-        self.peer_certs.clone()
+        Arc::clone(&self.peer_certs)
     }
 }
 
