@@ -6,8 +6,27 @@ use std::task::{Context, Poll};
 use hyper::server::conn::AddrStream;
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
+#[cfg(feature = "tls")]
+use crate::filters::mtls::Certificates;
+
+#[cfg(feature = "tls")]
+pub(crate) type PeerCertificates = std::sync::Arc<std::sync::RwLock<Option<Certificates>>>;
+#[cfg(not(feature = "tls"))]
+pub(crate) type PeerCertificates = ();
+
 pub trait Transport: AsyncRead + AsyncWrite {
     fn remote_addr(&self) -> Option<SocketAddr>;
+
+    fn peer_certificates(&self) -> PeerCertificates {
+        Default::default()
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub(crate) struct PeerInfo {
+    pub remote_addr: Option<SocketAddr>,
+    #[allow(dead_code)]
+    pub peer_certificates: PeerCertificates,
 }
 
 impl Transport for AddrStream {
